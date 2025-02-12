@@ -2,9 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const DBconnection = require('./config/db');
-const authRoutes = require('./Routes/authRoutes')
-const boardRoutes = require('./Routes/boardRoutes')
-const listRoutes = require('./Routes/listRoutes')
+const authRoutes = require('./Routes/authRoutes');
+const boardRoutes = require('./Routes/boardRoutes');
+const listRoutes = require('./Routes/listRoutes');
+const taskRoutes = require('./Routes/taskRoutes.js');
+const moveRoute = require('./Routes/moveRoutes.js');
 
 dotenv.config();
 const app = express();
@@ -22,11 +24,12 @@ app.get('/', (req, res) => {
     res.send("This is the home page");
 });
 
+// Correct route prefixes
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', boardRoutes);
 app.use('/api/auth', listRoutes);
-
-
+app.use('/api/auth', taskRoutes);
+app.use('/api/auth', moveRoute);
 
 
 // Start Server

@@ -21,7 +21,7 @@ router.get('/user-dashboard', authMiddleware, (req, res) => {
 
 // ✅ Get all users (Only Admins & Moderators can access)
 // ✅ Get all users (Only Admins & Moderators can access)
-router.get('/users', authMiddleware, hasRole('admin', 'moderator'), getAllUsers);
+router.get('/users', getAllUsers);
 
 
 module.exports = router;

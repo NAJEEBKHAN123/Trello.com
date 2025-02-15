@@ -2,29 +2,19 @@ const jwt = require('jsonwebtoken');
 const User = require('../model/usermodel');
 require('dotenv').config();
 
-// Authentication middleware
 const authMiddleware = async (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
 
         if (!token || !req.headers.authorization?.startsWith("Bearer ")) {
-            return res.status(401).json({ 
-                success: false, 
-                message: "Unauthorized: Invalid token format" 
-            });
+            return res.status(401).json({ success: false, message: "Unauthorized: Invalid token format" });
         }
 
-        // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Fetch user from database
         const user = await User.findById(decoded._id).select('-password');
 
         if (!user) {
-            return res.status(401).json({ 
-                success: false, 
-                message: "Unauthorized: User not found" 
-            });
+            return res.status(401).json({ success: false, message: "Unauthorized: User not found" });
         }
 
         req.user = user;
@@ -34,27 +24,17 @@ const authMiddleware = async (req, res, next) => {
         console.error("JWT Verification Error:", error);
 
         if (error.name === "TokenExpiredError") {
-            return res.status(401).json({ 
-                success: false, 
-                message: "Token expired. Please log in again." 
-            });
+            return res.status(401).json({ success: false, message: "Token expired. Please log in again." });
         }
 
-        res.status(401).json({ 
-            success: false, 
-            message: "Invalid Token" 
-        });
+        res.status(401).json({ success: false, message: "Invalid Token" });
     }
 };
 
-// Role-based access control middleware (supports multiple roles)
 const hasRole = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ 
-                success: false, 
-                message: `Access denied. Only ${roles.join(", ")} are allowed.` 
-            });
+            return res.status(403).json({ success: false, message: `Access denied. Only ${roles.join(", ")} are allowed.` });
         }
         next();
     };

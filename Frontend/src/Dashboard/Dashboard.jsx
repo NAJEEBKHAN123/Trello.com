@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import BoardList from "../component/Board/BoardList";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -27,6 +28,7 @@ const Dashboard = () => {
 
      <>
       <h1>hello</h1>
+      <BoardList/>
      </>
 ) 
     

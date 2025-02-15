@@ -6,7 +6,7 @@ const {
   getBoards,
   getBoardById,
   deleteBoard,
-  udpateBoard
+  // udpateBoard,
 } = require("../Controller/boardController");
 
 // Protected route for creating a board
@@ -14,7 +14,7 @@ router.post("/boards", authMiddleware, createBoard);
 router.get("/getAllBoards", authMiddleware, getBoards);
 router.get("/getBoardById/:id", authMiddleware, getBoardById);
 router.delete("/deleteBoard/:id", authMiddleware, deleteBoard);
-router.put("/updateBoard/:id", authMiddleware, udpateBoard);
+// router.put("/updateBoard/:id", authMiddleware, udpateBoard);
 
 
 

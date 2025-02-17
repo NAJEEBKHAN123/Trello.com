@@ -4,9 +4,9 @@ const dotenv = require('dotenv');
 const DBconnection = require('./config/db');
 const authRoutes = require('./Routes/authRoutes');
 const boardRoutes = require('./Routes/boardRoutes');
-const listRoutes = require('./Routes/listRoutes');
-const taskRoutes = require('./Routes/taskRoutes.js');
-const moveRoute = require('./Routes/moveRoutes.js');
+// const listRoutes = require('./Routes/listRoutes');
+// const taskRoutes = require('./Routes/taskRoutes.js');
+// const moveRoutes = require('./Routes/moveRoutes.js');
 
 dotenv.config();
 const app = express();
@@ -23,14 +23,16 @@ app.use(cors());
 app.get('/', (req, res) => {
     res.send("This is the home page");
 });
+app.get("/api/boards/getAllBoards", async(req, res) => {
+    res.send('ehklklj')
+});
 
 // Correct route prefixes
 app.use('/api/auth', authRoutes);
-app.use('/api/auth', boardRoutes);
-app.use('/api/auth', listRoutes);
-app.use('/api/auth', taskRoutes);
-app.use('/api/auth', moveRoute);
-
+app.use('/api/boards', boardRoutes);
+// app.use('/api/lists', listRoutes);
+// app.use('/api/tasks', taskRoutes);
+// app.use('/api/moves', moveRoutes);
 
 // Start Server
 app.listen(PORT, () => {

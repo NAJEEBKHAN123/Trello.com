@@ -54,6 +54,11 @@ const getBoards = async (req, res) => {
 
         console.log("Boards found:", boards); // Log the query results
 
+        // Check if boards exist for the user
+        if (!boards || boards.length === 0) {
+            return res.status(404).json({ success: false, message: "No boards found for this user" });
+        }
+
         // Add a `role` field to determine if the user is an owner or a member
         const boardsWithRole = boards.map(board => {
             const isOwner = board.owner._id.toString() === userId;

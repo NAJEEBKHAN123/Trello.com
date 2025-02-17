@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const BoardList = () => {
+const Boards = () => {
   const [boards, setBoards] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchBoards = async () => {
@@ -13,18 +14,17 @@ const BoardList = () => {
           return;
         }
 
-        console.log("Token:", token);  // ✅ Log token
-
-        const response = await axios.get("http://localhost:3000/api/auth/getAllBoards", {
-          headers: { Authorization: `Bearer ${token}` },
+        const response = await axios.get("http://localhost:3000/api/boards/getAllBoards", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
 
-        console.log("API Response:", response.data);  // ✅ Log API response
-        console.log("Boards Data:", response.data.data);  // ✅ Log extracted board data
-
+        console.log("Boards Data:", response.data.data); // Logs the data to verify
         setBoards(response.data.data);
-      } catch (error) {
-        console.error("Error fetching boards:", error.response?.data || error);
+      } catch (err) {
+        console.error("Error fetching boards:", err);
+        setError("Failed to fetch boards");
       }
     };
 
@@ -34,12 +34,13 @@ const BoardList = () => {
   return (
     <div>
       <h2>Your Boards</h2>
+      {error && <p>{error}</p>}
       {boards.length === 0 ? (
         <p>No boards found</p>
       ) : (
         <ul>
           {boards.map((board) => (
-            <li key={board._id}>{board.name}</li>
+            <li key={board._id}>{board.title}</li>
           ))}
         </ul>
       )}
@@ -47,4 +48,4 @@ const BoardList = () => {
   );
 };
 
-export default BoardList;
+export default Boards;

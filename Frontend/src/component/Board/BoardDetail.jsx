@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { ClipLoader } from 'react-spinners';
 
 const BoardDetail = () => {
   const { boardId } = useParams();
   const [board, setBoard] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // For redirecting if needed
 
   useEffect(() => {
     const fetchBoard = async () => {
@@ -43,19 +45,26 @@ const BoardDetail = () => {
         setError(
           err.response?.data?.message || "Failed to fetch board. Access Denied."
         );
+        if (err.response?.status === 403 || err.response?.status === 401) {
+          // Redirect to login if access is denied or token expired
+          navigate("/login");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     if (boardId) fetchBoard();
-  }, [boardId]);
+  }, [boardId, navigate]);
+
 
   return (
     <div className="container mx-auto p-4">
       {error && <p className="text-red-500">{error}</p>}
       {loading ? (
-        <p className="text-gray-500">Loading...</p>
+        <div className="flex justify-center items-center">
+          <ClipLoader size={40} color="#4A90E2" />
+        </div>
       ) : board ? (
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold mb-2">{board.title}</h2>
@@ -70,6 +79,7 @@ const BoardDetail = () => {
                 {member.username} ({member.email})
               </li>
             ))}
+            <button onClick={() => navigate('/boardlist')}>Back</button>
           </ul>
         </div>
       ) : (

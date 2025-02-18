@@ -5,22 +5,27 @@ const jwt = require('jsonwebtoken')
 
 const createBoard = async (req, res) => {
     try {
+        console.log("User from token:", req.user); // Add this for debugging
+
         const { title, description, members } = req.body;
 
         if (!req.user || !req.user.id) {
+            console.log("User not authenticated: No user found in request");
             return res.status(401).json({ success: false, message: "User not authenticated" });
         }
 
         const owner = req.user.id;
-
         if (!title) {
             return res.status(400).json({ success: false, message: "Board title is required" });
         }
 
         const boardMembers = members ? [...new Set([...members, owner])] : [owner];
+        console.log("Board members:", boardMembers);
 
         if (boardMembers.length > 0) {
             const validMembers = await User.find({ _id: { $in: boardMembers } });
+            console.log("Valid members found:", validMembers);
+
             if (validMembers.length !== boardMembers.length) {
                 return res.status(400).json({ success: false, message: "Invalid member IDs provided" });
             }
@@ -35,6 +40,8 @@ const createBoard = async (req, res) => {
         res.status(500).json({ success: false, message: "Error creating board", error: error.message });
     }
 };
+
+
 
 const getBoards = async (req, res) => {
     try {
@@ -57,57 +64,66 @@ const getBoards = async (req, res) => {
   };
 
   const getBoardById = async (req, res) => {
-    const { id } = req.params; // Extract board ID from request parameters
-
+    const { id } = req.params;
+  
     try {
-        // Ensure authorization header exists
-        if (!req.headers.authorization) {
-            return res.status(401).json({ success: false, message: "No token provided" });
-        }
-
-        const token = req.headers.authorization.split(' ')[1]; // Extract token
-        let decoded;
-        
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify token
-        } catch (error) {
-            if (error.name === 'TokenExpiredError') {
-                return res.status(401).json({ success: false, message: 'Token expired' });
-            }
-            return res.status(401).json({ success: false, message: "Invalid token" });
-        }
-
-        const userId = decoded.id; // Extract user ID from decoded token
-        console.log("Fetching board with ID:", id); // Log ID for debugging
-
-        // Fetch board from database and populate owner & members
-        const board = await Board.findById(id)
-            .populate('owner', 'username email')
-            .populate('members', 'username email');
-
-        // Log board for debugging
-        console.log(board);
-
-        if (!board) {
-            return res.status(404).json({ success: false, message: "Board not found" });
-        }
-
-        // Check if the user is the owner or a member
-        const isOwner = board.owner && board.owner._id.toString() === userId;
-        const isMember = board.members.some(member => member._id.toString() === userId);
-
-        if (!isOwner && !isMember) {
-            return res.status(403).json({ success: false, message: "Access Denied" });
-        }
-
-        // Return board data if user has access
-        res.status(200).json({ success: true, message: "Fetched board successfully", data: board });
-
+      if (!req.headers.authorization) {
+        return res.status(401).json({ success: false, message: "No token provided" });
+      }
+  
+      const token = req.headers.authorization.split(' ')[1];
+      let decoded;
+  
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("Decoded Token:", decoded);
+      } catch (error) {
+        return res.status(401).json({ success: false, message: error.name === 'TokenExpiredError' ? 'Token expired' : "Invalid token" });
+      }
+  
+      const userId = decoded._id; // Correctly extract the user ID
+  
+      console.log("Fetching board with ID:", id);
+      const board = await Board.findById(id)
+        .populate('owner', 'username email')
+        .populate('members', 'username email');
+  
+      console.log("Fetched Board:", board);
+  
+      if (!board) {
+        return res.status(404).json({ success: false, message: "Board not found" });
+      }
+  
+      // Log IDs for debugging
+      console.log("Board Owner ID:", board.owner._id.toString());
+      console.log("Board Members IDs:", board.members.map(member => member._id.toString()));
+      console.log("User ID:", userId.toString());
+  
+      // Check if the user is the owner or a member
+      const isOwner = board.owner._id.toString() === userId.toString();
+      const isMember = board.members.some(member => member._id.toString() === userId.toString());
+  
+      console.log("Is Owner:", isOwner);
+      console.log("Is Member:", isMember);
+  
+      // If the user is not the owner or a member, add them to the members array
+      if (!isOwner && !isMember) {
+        console.log("User is not a member, adding them to the board.");
+        board.members.push({ _id: userId }); // Add the user to the members array
+        await board.save(); // Save the updated board
+        console.log('User added to the board.');
+      }
+  
+      // Respond with the fetched board
+      res.status(200).json({ success: true, message: "Fetched board successfully", data: board });
+  
     } catch (error) {
-        console.error("Error fetching board:", error);
-        res.status(500).json({ success: false, message: "Error fetching board", error: error.message });
+      console.error("Error fetching board:", error);
+      res.status(500).json({ success: false, message: "Error fetching board", error: error.message });
     }
-};
+  };
+  
+
 
 
 

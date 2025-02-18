@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Board = require('../model/Board');
 const User = require('../model/usermodel');
+const jwt = require('jsonwebtoken')
 
 const createBoard = async (req, res) => {
     try {
@@ -37,75 +38,78 @@ const createBoard = async (req, res) => {
 
 const getBoards = async (req, res) => {
     try {
-        const userId = req.user.id;
-        console.log("Authenticated User ID:", userId);
+      // Verify token and extract user ID
+      const token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Find boards associated with the user ID
+      const boards = await Board.find({ userId: decoded.id });
+      
+      if (!boards) {
+        return res.status(404).json({ message: 'No boards found' });
+      }
+  
+      res.json({ data: boards });
+    } catch (err) {
+      console.error("Error fetching boards:", err);
+      res.status(500).json({ message: 'Error fetching boards' });
+    }
+  };
 
-        // Convert userId to ObjectId using `new`
-        const { ObjectId } = require('mongoose').Types;
-        const userObjectId = new ObjectId(userId); // ✅ Correct usage
-        console.log("User ObjectId:", userObjectId);
+  const getBoardById = async (req, res) => {
+    const { id } = req.params; // Extract board ID from request parameters
 
-        // Fetch boards where the user is either the owner or a member
-        const boards = await Board.find({
-            $or: [{ owner: userObjectId }, { members: userObjectId }],
-        })
-        .populate("owner", "username email")
-        .populate("members", "username email");
-
-        console.log("Boards found:", boards); // Log the query results
-
-        // Check if boards exist for the user
-        if (!boards || boards.length === 0) {
-            return res.status(404).json({ success: false, message: "No boards found for this user" });
+    try {
+        // Ensure authorization header exists
+        if (!req.headers.authorization) {
+            return res.status(401).json({ success: false, message: "No token provided" });
         }
 
-        // Add a `role` field to determine if the user is an owner or a member
-        const boardsWithRole = boards.map(board => {
-            const isOwner = board.owner._id.toString() === userId;
-            const isMember = board.members.some(member => member._id.toString() === userId);
-            
-            return {
-                ...board.toObject(),
-                role: isOwner ? "owner" : isMember ? "member" : "none"
-            };
-        });
+        const token = req.headers.authorization.split(' ')[1]; // Extract token
+        let decoded;
+        
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify token
+        } catch (error) {
+            if (error.name === 'TokenExpiredError') {
+                return res.status(401).json({ success: false, message: 'Token expired' });
+            }
+            return res.status(401).json({ success: false, message: "Invalid token" });
+        }
 
-        console.log("Boards with roles:", boardsWithRole); // Log the final result
+        const userId = decoded.id; // Extract user ID from decoded token
+        console.log("Fetching board with ID:", id); // Log ID for debugging
 
-        res.status(200).json({
-            success: true,
-            message: "Fetched boards successfully",
-            data: boardsWithRole,
-        });
-    } catch (error) {
-        console.error("Error fetching boards:", error);
-        res.status(500).json({ success: false, message: "Error fetching boards", error: error.message });
-    }
-};
-
-
-const getBoardById = async (req, res) => {
-    const { id } = req.params;
-    try {
+        // Fetch board from database and populate owner & members
         const board = await Board.findById(id)
             .populate('owner', 'username email')
             .populate('members', 'username email');
+
+        // Log board for debugging
+        console.log(board);
 
         if (!board) {
             return res.status(404).json({ success: false, message: "Board not found" });
         }
 
-        const isMember = board.members.some(member => member._id.toString() === req.user.id);
-        if (!isMember) {
+        // Check if the user is the owner or a member
+        const isOwner = board.owner && board.owner._id.toString() === userId;
+        const isMember = board.members.some(member => member._id.toString() === userId);
+
+        if (!isOwner && !isMember) {
             return res.status(403).json({ success: false, message: "Access Denied" });
         }
 
+        // Return board data if user has access
         res.status(200).json({ success: true, message: "Fetched board successfully", data: board });
+
     } catch (error) {
         console.error("Error fetching board:", error);
         res.status(500).json({ success: false, message: "Error fetching board", error: error.message });
     }
 };
+
+
 
 const updateBoard = async (req, res) => {
     const { id } = req.params;

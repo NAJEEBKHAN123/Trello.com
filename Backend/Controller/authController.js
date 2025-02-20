@@ -15,26 +15,32 @@ const signup = async (req, res) => {
             return res.status(409).json({ success: false, message: "User already exists" });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10); // Dynamic SALT
+        const hashedPassword = await bcrypt.hash(password, 10);
+        let userRole = "user"; // Default role
 
-        // ❌ Prevent unauthorized role assignment (only admins can assign roles)
-        const userRole = role && req.user?.role === "admin" ? role : "user"; 
+        // ✅ Assign role only if user is logged in as admin
+        if (req.user && req.user.role === "admin" && role) {
+            userRole = role;
+        }
 
         const user = new User({
             username,
             email,
             password: hashedPassword,
-            role: userRole
+            role: userRole,
         });
 
         await user.save();
         return res.status(201).json({ success: true, message: "User registered successfully", data: user });
-        
+
     } catch (error) {
         console.error("Error in user signup:", error);
         res.status(500).json({ message: "Internal Server Error", error });
     }
 };
+
+
+
 
 
 const login = async (req, res) => {
@@ -55,17 +61,12 @@ const login = async (req, res) => {
             return res.status(401).json({ success: false, message: "Invalid email or password" });
         }
 
-        // ✅ Token includes ID and Role for efficient authorization
-        const generateToken = (user) => {
-            return jwt.sign(
-                { _id: user._id, role: user.role }, // Use _id here
-                process.env.JWT_SECRET,
-                { expiresIn: '1h' }
-            );
-        };
+        const token = jwt.sign(
+            { _id: user._id, role: user.role }, 
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
         
-        // During login
-        const token = generateToken(user);
         res.status(200).json({
             success: true,
             message: "Login successful",
@@ -82,6 +83,7 @@ const login = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error", error });
     }
 };
+
 
 // ✅ Admin-only route to fetch all users
 const getAllUsers = async (req, res) => {

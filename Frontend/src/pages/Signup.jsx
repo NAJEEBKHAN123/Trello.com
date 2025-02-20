@@ -27,6 +27,7 @@ function Signup() {
         email: "",
         password: ""
       })
+      navigate('/login')
       
     } catch (error) {
       console.error("Signup failed:", error.response?.data || error);

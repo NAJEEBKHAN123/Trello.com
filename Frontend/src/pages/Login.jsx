@@ -17,32 +17,23 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/login",
-        formData
-      );
+        const response = await axios.post(
+            "http://localhost:3000/api/auth/login",
+            formData,
+            { headers: { "Content-Type": "application/json" } } // ✅ Ensure correct headers
+        );
 
-      console.log("Login successful:", response.data);
-      alert("Login Successful!");
+        console.log("Login response:", response.data); // ✅ Debugging
 
-      // ✅ Store token in localStorage
-      localStorage.setItem("token", response.data.token);
-
-      setFormData({
-        email: "",
-        password: "",
-      });
-
-      // ✅ Redirect user to dashboard
-      navigate("/user-dashboard");
+        localStorage.setItem("token", response.data.token);
+        alert("Login Successful!");
+        navigate("/user-dashboard");
     } catch (error) {
-      console.error(
-        "Login failed:",
-        error.response?.data?.message || "Server error"
-      );
-      alert(error.response?.data?.message || "Login failed");
+        console.error("Login failed:", error.response?.data || error.message);
+        alert(error.response?.data?.message || "Login failed");
     }
-  };
+};
+
 
   return (
     <form onSubmit={handleSubmit}>

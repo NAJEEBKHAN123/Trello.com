@@ -16,12 +16,8 @@ const signup = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        let userRole = "user"; // Default role
 
-        // ✅ Assign role only if user is logged in as admin
-        if (req.user && req.user.role === "admin" && role) {
-            userRole = role;
-        }
+       let userRole = role === 'admin' ? "admin" : "user";
 
         const user = new User({
             username,
@@ -86,14 +82,17 @@ const login = async (req, res) => {
 
 
 // ✅ Admin-only route to fetch all users
-const getAllUsers = async (req, res) => {
+const getAllUsers =  async (req, res) => {
     try {
-        const users = await User.find().select("-password"); 
-        res.json({ success: true, data: users });
+      const user = await User.findById(req.user.id); // ✅ Get only the logged-in user
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+      res.json({ success: true, data: user }); // ✅ Send a single user object, not an array
     } catch (error) {
-        console.error("Error fetching users:", error);
-        res.status(500).json({ message: "Internal Server Error", error });
+      res.status(500).json({ success: false, message: "Server error" });
     }
-};
+  };
+  
 
 module.exports = { signup, login, getAllUsers };

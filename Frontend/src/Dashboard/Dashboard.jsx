@@ -19,20 +19,24 @@ const Dashboard = () => {
   const fetchUserRole = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        console.warn("No token found in localStorage");
+        return;
+      }
 
       const response = await axios.get("http://localhost:3000/api/auth/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("User Role:", response.data.role); // Debugging
-      setUserRole(response.data.role || "user"); // Default to "user" if undefined
+      console.log("Full API Response:", response.data);
+      console.log("Full API Response:", response.data.data.role); // Debugging full response
+      // Debugging full response
+      setUserRole(response.data.data.role || "user"); // Fallback to "user" if undefined
     } catch (error) {
-      console.error("Error fetching user role:", error);
+      console.error("Error fetching user role:", error.response?.data || error);
     }
   };
 
-  // Fetch Boards
   const fetchBoards = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -41,7 +45,7 @@ const Dashboard = () => {
       const response = await axios.get(
         "http://localhost:3000/api/boards/getAllBoards",
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }, // ✅ Fixed backticks
         }
       );
       setBoards(response.data.data);
@@ -118,7 +122,7 @@ const Dashboard = () => {
             <h2 className="text-2xl font-semibold mb-4">All Boards</h2>
 
             {/* 🔹 Show "Create Board" Button Only if Admin */}
-            {userRole === "user" && (
+            {userRole === "admin" && (
               <div
                 onClick={() => {
                   setShowCreateForm(true);
@@ -140,6 +144,10 @@ const Dashboard = () => {
                 >
                   <h3 className="font-semibold">{board.title}</h3>
                   <p className="text-sm text-gray-600">{board.description}</p>
+                  <p className="text-sm text-gray-600">
+                    {" "}
+                    Created At: {new Date(board.createdAt).toLocaleString()}
+                  </p>
                 </div>
               ))}
             </div>
@@ -196,12 +204,18 @@ const Dashboard = () => {
         )}
 
         {/* Default Welcome Message */}
+        {/* Default Welcome Message Based on Role */}
         {!viewAllBoards && !selectedBoard && !showCreateForm && (
           <div className="flex items-center justify-center h-full">
-            <h2 className="text-xl text-gray-600">
-              Welcome to Project Manager! Select a board from the sidebar or
-              create a new one to get started.
-            </h2>
+            {userRole === "admin" ? (
+              <h2 className="text-xl text-gray-600">
+                Welcome, Admin! You have full access to manage boards.
+              </h2>
+            ) : (
+              <h2 className="text-xl text-gray-600">
+                Welcome to Project Manager! Select a board from the sidebar.
+              </h2>
+            )}
           </div>
         )}
       </div>

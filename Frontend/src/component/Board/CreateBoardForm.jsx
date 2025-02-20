@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-const CreateBoardForm = ({ onCreateBoard }) => {
+
+const CreateBoardForm = ({onCreateBoard}) => {
   const [boardName, setBoardName] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,9 +45,12 @@ const CreateBoardForm = ({ onCreateBoard }) => {
         setBoardName("");
         setDescription("");
         onCreateBoard(response.data.board); // Pass new board to the parent
+        
+        
       }
+      navigate('/boardlist')
     } catch (error) {
-      setError("Error creating board. Please try again.");
+      setError("Error creating board. Please try again.", error);
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,7 @@ const {
 } = require('../Controller/listController');
 
 // Create a new list
-router.post('/lists', createList);
+router.post('/createList', createList);
 
 // Get all lists for a specific board
 router.get('/boards/:boardId/lists', getListsByBoard);

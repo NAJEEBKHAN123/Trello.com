@@ -25,7 +25,7 @@ function Home() {
       {/* Protected routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/user-dashboard" element={<Dashboard />} />
-        <Route path="/create-board" element={<CreateBoardForm />} /> {/* Add CreateBoard route */}
+        <Route path="/create-board" element={<CreateBoardForm />} /> 
       </Route>
     </Routes>
   );

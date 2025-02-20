@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import DeleteBoard from "../component/Board/DeleteBoard";
+import ListComponent from "../component/List/ListComp";
 
 const Dashboard = () => {
   const [boards, setBoards] = useState([]);
@@ -79,6 +80,7 @@ const Dashboard = () => {
     }
   };
 
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
@@ -136,29 +138,28 @@ const Dashboard = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-3 gap-4 relative">
-              {boards.map((board) => (
-                <div
-                  key={board._id}
-                  className="cursor-pointer p-4 bg-white shadow-md rounded hover:bg-gray-200 relative"
-                >
-                  <h3 className="font-semibold">{board.title}</h3>
-                  <p className="text-sm text-gray-600">{board.description}</p>
-                  <p className="text-sm text-gray-600">
-                    Created At: {new Date(board.createdAt).toLocaleString()}
-                  </p>
+<div className="grid grid-cols-3 gap-4 relative">
+  {boards.map((board) => (
+    <div
+      key={board._id}
+      className="cursor-pointer p-4 bg-white shadow-md rounded hover:bg-gray-200 relative"
+     
+    > 
+      <div  onClick={() => setSelectedBoard(board)}>
 
-                  {/* 🔹 Delete Button (Only for Admins) */}
-                  <div className="absolute top-3 right-0">
-                    <DeleteBoard
-                      board={board}
-                      fetchBoards={fetchBoards}
-                      userRole={userRole}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+      <h3 className="font-semibold">{board.title}</h3>
+      <p className="text-sm text-gray-600">{board.description}</p>
+      <p className="text-sm text-gray-600">Created At: {new Date(board.createdAt).toLocaleString()}</p>
+      </div>
+      
+      {/* 🔹 Delete Button (Only for Admins) */}
+       <div className="absolute top-3 right-0"> 
+      <DeleteBoard board={board} fetchBoards= {fetchBoards} userRole = {userRole} />
+       </div>
+    </div>
+  ))}
+</div>
+
           </div>
         )}
 
@@ -226,6 +227,15 @@ const Dashboard = () => {
             )}
           </div>
         )}
+        {selectedBoard && (
+  <div>
+    <h2 className="text-2xl font-semibold">{selectedBoard.title}</h2>
+    <p className="text-gray-600">{selectedBoard.description}</p>
+
+    {/* Lists Section */}
+    <ListComponent boardId={selectedBoard._id} />
+  </div>
+)}
       </div>
     </div>
   );

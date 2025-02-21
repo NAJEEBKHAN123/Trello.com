@@ -7,6 +7,7 @@ import Dashboard from "../Dashboard/Dashboard";
 import BoardDetail from "../component/Board/BoardDetail";
 import BoardList from "../component/Board/BoardList";
 import CreateBoardForm from "../component/Board/CreateBoardForm"; // Import CreateBoardForm
+import Logout from "./Logout";
 
 function Home() {
   return (
@@ -17,6 +18,8 @@ function Home() {
       {/* Public routes */}
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/logout" element={<Logout />} />
+
 
       {/* Board routes */}
       <Route path="/boardlist" element={<BoardList />} />

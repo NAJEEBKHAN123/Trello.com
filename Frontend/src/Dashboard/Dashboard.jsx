@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import DeleteBoard from "../component/Board/DeleteBoard";
-import ListComponent from "../component/List/ListComp";
+import ListComponent from "../component/List/ListComponent";
+import Navbar from "../Common/Navbar";
 
 const Dashboard = () => {
   const [boards, setBoards] = useState([]);
@@ -39,6 +40,7 @@ const Dashboard = () => {
     }
   };
 
+  //  Fetch boards
   const fetchBoards = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -57,29 +59,67 @@ const Dashboard = () => {
   };
 
   // Create Board
+  // const handleCreateBoard = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     if (!token) return;
+
+  //     await axios.post(
+  //       "http://localhost:3000/api/boards/createBoards",
+  //       { title: boardName, description },
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+
+  //     setBoardName("");
+  //     setDescription("");
+  //     setShowCreateForm(false);
+  //     setSelectedBoard(null);
+  //     setViewAllBoards(false);
+  //     fetchBoards();
+  //   } catch (error) {
+  //     console.error("Error creating board:", error);
+  //   }
+  // };
+
   const handleCreateBoard = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      await axios.post(
+      const response = await axios.post(
         "http://localhost:3000/api/boards/createBoards",
         { title: boardName, description },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      const newBoard = response.data.data;
+
+      // Automatically create default lists
+      await axios.post(`http://localhost:3000/api/lists/createList`, {
+        boardId: newBoard._id,
+        title: "To-Do",
+      });
+
+      await axios.post(`http://localhost:3000/api/lists/createList`, {
+        boardId: newBoard._id,
+        title: "In Progress",
+      });
+
+      await axios.post(`http://localhost:3000/api/lists/createList`, {
+        boardId: newBoard._id,
+        title: "Completed",
+      });
+
       setBoardName("");
       setDescription("");
       setShowCreateForm(false);
-      setSelectedBoard(null);
-      setViewAllBoards(false);
       fetchBoards();
     } catch (error) {
       console.error("Error creating board:", error);
     }
   };
-
 
   return (
     <div className="flex h-screen">
@@ -118,13 +158,16 @@ const Dashboard = () => {
       </div>
 
       {/* Main Section */}
-      <div className="p-6 flex-1 bg-gray-100">
+      <div className=" flex-1 bg-gray-100 relative">
+       <div className="pb-0">
+       <Navbar/>
+       </div>
         {/* Show All Boards */}
         {viewAllBoards && !selectedBoard && !showCreateForm && (
-          <div>
+          <div className="p-6">
             <h2 className="text-2xl font-semibold mb-4">All Boards</h2>
-
-            {/* 🔹 Show "Create Board" Button Only if Admin */}
+           
+            {/* 🔹 Show  "Create Board" Button Only if Admin */}
             {userRole === "admin" && (
               <div
                 onClick={() => {
@@ -138,28 +181,31 @@ const Dashboard = () => {
               </div>
             )}
 
-<div className="grid grid-cols-3 gap-4 relative">
-  {boards.map((board) => (
-    <div
-      key={board._id}
-      className="cursor-pointer p-4 bg-white shadow-md rounded hover:bg-gray-200 relative"
-     
-    > 
-      <div  onClick={() => setSelectedBoard(board)}>
+            <div className="grid grid-cols-3 gap-4 relative">
+              {boards.map((board) => (
+                <div
+                  key={board._id}
+                  className="cursor-pointer p-4 bg-white shadow-md rounded hover:bg-gray-200 relative"
+                >
+                  <div onClick={() => setSelectedBoard(board)}>
+                    <h3 className="font-semibold">{board.title}</h3>
+                    <p className="text-sm text-gray-600">{board.description}</p>
+                    <p className="text-sm text-gray-600">
+                      Created At: {new Date(board.createdAt).toLocaleString()}
+                    </p>
+                  </div>
 
-      <h3 className="font-semibold">{board.title}</h3>
-      <p className="text-sm text-gray-600">{board.description}</p>
-      <p className="text-sm text-gray-600">Created At: {new Date(board.createdAt).toLocaleString()}</p>
-      </div>
-      
-      {/* 🔹 Delete Button (Only for Admins) */}
-       <div className="absolute top-3 right-0"> 
-      <DeleteBoard board={board} fetchBoards= {fetchBoards} userRole = {userRole} />
-       </div>
-    </div>
-  ))}
-</div>
-
+                  {/* 🔹 Delete Button (Only for Admins) */}
+                  <div className="absolute top-3 right-0">
+                    <DeleteBoard
+                      board={board}
+                      fetchBoards={fetchBoards}
+                      userRole={userRole}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -198,21 +244,50 @@ const Dashboard = () => {
           <div>
             <h2 className="text-2xl font-semibold">{selectedBoard.title}</h2>
             <p className="text-gray-600">{selectedBoard.description}</p>
+
             <div className="grid grid-cols-3 gap-4 mt-6">
+              {/* To-Do List */}
               <div className="bg-white p-4 shadow-md rounded">
                 <h3 className="font-semibold text-lg">📝 To-Do</h3>
+                <input
+                  type="text"
+                  placeholder="Task"
+                  className="w-full p-2 border rounded mt-2"
+                />
+                <button className="bg-green-500 text-white px-4 py-2 rounded mt-2 w-full">
+                  Add
+                </button>
               </div>
+
+              {/* In Progress List */}
               <div className="bg-white p-4 shadow-md rounded">
                 <h3 className="font-semibold text-lg">🚀 In Progress</h3>
+                <input
+                  type="text"
+                  placeholder="Task"
+                  className="w-full p-2 border rounded mt-2"
+                />
+                <button className="bg-green-500 text-white px-4 py-2 rounded mt-2 w-full">
+                  Add
+                </button>
               </div>
+
+              {/* Completed List */}
               <div className="bg-white p-4 shadow-md rounded">
                 <h3 className="font-semibold text-lg">✅ Completed</h3>
+                <input
+                  type="text"
+                  placeholder="Task"
+                  className="w-full p-2 border rounded mt-2"
+                />
+                <button className="bg-green-500 text-white px-4 py-2 rounded mt-2 w-full">
+                  Add
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Default Welcome Message */}
         {/* Default Welcome Message Based on Role */}
         {!viewAllBoards && !selectedBoard && !showCreateForm && (
           <div className="flex items-center justify-center h-full">
@@ -228,14 +303,14 @@ const Dashboard = () => {
           </div>
         )}
         {selectedBoard && (
-  <div>
-    <h2 className="text-2xl font-semibold">{selectedBoard.title}</h2>
-    <p className="text-gray-600">{selectedBoard.description}</p>
+          <div>
+            <h2 className="text-2xl font-semibold">{selectedBoard.title}</h2>
+            <p className="text-gray-600">{selectedBoard.description}</p>
 
-    {/* Lists Section */}
-    <ListComponent boardId={selectedBoard._id} />
-  </div>
-)}
+            {/* Lists Section */}
+            <ListComponent boardId={selectedBoard._id} />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -88,6 +88,22 @@ const Dashboard = () => {
       const token = localStorage.getItem("token");
       if (!token) return;
 
+      // Fetch the current board count for this admin
+      const boardCountResponse = await axios.get(
+        "http://localhost:3000/api/boards/getAllBoards",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const adminBoards = boardCountResponse.data.data.filter(
+        (board) => board.createdBy === localStorage.getItem("userId") // Ensure user ID matches
+      );
+
+      if (adminBoards.length >= 9) {
+        alert("Admin can only create up to 9 boards");
+        return;
+      }
+
+      // Proceed with board creation if limit is not reached
       const response = await axios.post(
         "http://localhost:3000/api/boards/createBoards",
         { title: boardName, description },
@@ -97,17 +113,17 @@ const Dashboard = () => {
       const newBoard = response.data.data;
 
       // Automatically create default lists
-      await axios.post(`http://localhost:3000/api/lists/createList`, {
+      await axios.post("http://localhost:3000/api/lists/createList", {
         boardId: newBoard._id,
         title: "To-Do",
       });
 
-      await axios.post(`http://localhost:3000/api/lists/createList`, {
+      await axios.post("http://localhost:3000/api/lists/createList", {
         boardId: newBoard._id,
         title: "In Progress",
       });
 
-      await axios.post(`http://localhost:3000/api/lists/createList`, {
+      await axios.post("http://localhost:3000/api/lists/createList", {
         boardId: newBoard._id,
         title: "Completed",
       });
@@ -117,10 +133,15 @@ const Dashboard = () => {
       setShowCreateForm(false);
       fetchBoards();
     } catch (error) {
-      console.error("Error creating board:", error);
+      if (error.response && error.response.data.message) {
+        alert(error.response.data.message);
+      } else {
+        console.error("Error creating board:", error);
+      }
     }
   };
 
+  const handleRestriction = async () => {};
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
@@ -159,27 +180,35 @@ const Dashboard = () => {
 
       {/* Main Section */}
       <div className=" flex-1 bg-gray-100 relative">
-       <div className="pb-0">
-       <Navbar/>
-       </div>
+        <div className="pb-0">
+          <Navbar />
+        </div>
         {/* Show All Boards */}
         {viewAllBoards && !selectedBoard && !showCreateForm && (
           <div className="p-6">
             <h2 className="text-2xl font-semibold mb-4">All Boards</h2>
-           
+
             {/* 🔹 Show  "Create Board" Button Only if Admin */}
-            {userRole === "admin" && (
-              <div
-                onClick={() => {
-                  setShowCreateForm(true);
-                  setViewAllBoards(false);
-                  setSelectedBoard(null);
-                }}
-                className="cursor-pointer p-3 border rounded bg-green-500 text-center hover:bg-green-400 mb-4 w-48"
-              >
-                + Create Board
-              </div>
-            )}
+            <div className="absolute top-24 pb-4 right-6">
+              {userRole === "admin" && boards.length < 9 && (
+                <div
+                  onClick={() => {
+                    setShowCreateForm(true);
+                    setViewAllBoards(false);
+                    setSelectedBoard(null);
+                  }}
+                  className="cursor-pointer p-3 border rounded bg-blue-500 text-white text-center hover:bg-blue-400 mb-4 w-48"
+                >
+                  + Create Board
+                </div>
+              )}
+
+              {userRole === "admin" && boards.length >= 9 && (
+                <div className="p-3 border rounded bg-gray-400 text-white text-[10px] text-center mb-4 w-48">
+                  Max Board Limit Reached
+                </div>
+              )}
+            </div>
 
             <div className="grid grid-cols-3 gap-4 relative">
               {boards.map((board) => (

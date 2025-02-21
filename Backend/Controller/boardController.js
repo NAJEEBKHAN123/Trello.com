@@ -18,6 +18,12 @@ const createBoard = async (req, res) => {
         if (!title) {
             return res.status(400).json({ success: false, message: "Board title is required" });
         }
+        if(req.user === "admin"){
+          const adminCountBoard = await Board.countDocuments({createdBy: userId})
+          if(adminCountBoard >= 9){
+            return res.status(400).json({ success: false, message: "Admin can only create up to 9 boards" });
+          }
+          }
 
         const boardMembers = members ? [...new Set([...members, owner])] : [owner];
         console.log("Board members:", boardMembers);

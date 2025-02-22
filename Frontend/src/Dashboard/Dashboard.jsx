@@ -141,7 +141,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleRestriction = async () => {};
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
@@ -268,55 +267,6 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Show Selected Board */}
-        {selectedBoard && !showCreateForm && (
-          <div>
-            <h2 className="text-2xl font-semibold">{selectedBoard.title}</h2>
-            <p className="text-gray-600">{selectedBoard.description}</p>
-
-            <div className="grid grid-cols-3 gap-4 mt-6">
-              {/* To-Do List */}
-              <div className="bg-white p-4 shadow-md rounded">
-                <h3 className="font-semibold text-lg">📝 To-Do</h3>
-                <input
-                  type="text"
-                  placeholder="Task"
-                  className="w-full p-2 border rounded mt-2"
-                />
-                <button className="bg-green-500 text-white px-4 py-2 rounded mt-2 w-full">
-                  Add
-                </button>
-              </div>
-
-              {/* In Progress List */}
-              <div className="bg-white p-4 shadow-md rounded">
-                <h3 className="font-semibold text-lg">🚀 In Progress</h3>
-                <input
-                  type="text"
-                  placeholder="Task"
-                  className="w-full p-2 border rounded mt-2"
-                />
-                <button className="bg-green-500 text-white px-4 py-2 rounded mt-2 w-full">
-                  Add
-                </button>
-              </div>
-
-              {/* Completed List */}
-              <div className="bg-white p-4 shadow-md rounded">
-                <h3 className="font-semibold text-lg">✅ Completed</h3>
-                <input
-                  type="text"
-                  placeholder="Task"
-                  className="w-full p-2 border rounded mt-2"
-                />
-                <button className="bg-green-500 text-white px-4 py-2 rounded mt-2 w-full">
-                  Add
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Default Welcome Message Based on Role */}
         {!viewAllBoards && !selectedBoard && !showCreateForm && (
           <div className="flex items-center justify-center h-full">
@@ -333,9 +283,6 @@ const Dashboard = () => {
         )}
         {selectedBoard && (
           <div>
-            <h2 className="text-2xl font-semibold">{selectedBoard.title}</h2>
-            <p className="text-gray-600">{selectedBoard.description}</p>
-
             {/* Lists Section */}
             <ListComponent boardId={selectedBoard._id} />
           </div>

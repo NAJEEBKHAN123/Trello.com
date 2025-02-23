@@ -57,7 +57,7 @@ const ListComponent = ({ boardId }) => {
           lists.map((list) => (
             <div key={list._id} className="bg-white p-4 shadow-md rounded w-72">
               <h3 className="text-md font-bold mb-2">{list.title}</h3>
-              <TaskComponent listId={list._id} />
+              <TaskComponent listId={list._id} boardId={boardId} />
             </div>
           ))}
 

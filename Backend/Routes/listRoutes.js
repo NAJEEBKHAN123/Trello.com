@@ -17,6 +17,6 @@ router.get('/boards/:boardId/lists', getListsByBoard);
 router.put('/lists/:listId', updateLists);
 
 // Delete a specific list
-router.delete('/lists/:listId', deleteList);
+router.delete('/deleteList/:listId', deleteList);
 
 module.exports = router;

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { ClipLoader } from 'react-spinners';
+import { ClipLoader } from "react-spinners";
 
 const BoardDetail = () => {
   const { boardId } = useParams();
   const [board, setBoard] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // For redirecting if needed
+  const navigate = useNavigate(); // For redirecting
 
   useEffect(() => {
     const fetchBoard = async () => {
@@ -45,9 +45,9 @@ const BoardDetail = () => {
         setError(
           err.response?.data?.message || "Failed to fetch board. Access Denied."
         );
+
         if (err.response?.status === 403 || err.response?.status === 401) {
-          // Redirect to login if access is denied or token expired
-          navigate("/login");
+          setTimeout(() => navigate("/login"), 1000); // Prevent immediate redirect
         }
       } finally {
         setLoading(false);
@@ -56,7 +56,6 @@ const BoardDetail = () => {
 
     if (boardId) fetchBoard();
   }, [boardId, navigate]);
-
 
   return (
     <div className="container mx-auto p-4">
@@ -70,17 +69,29 @@ const BoardDetail = () => {
           <h2 className="text-2xl font-semibold mb-2">{board.title}</h2>
           <p className="text-gray-700">{board.description}</p>
           <p className="text-sm text-gray-500">
-            Owner: {board.owner.username} ({board.owner.email})
+            Owner: {board.owner?.username} ({board.owner?.email})
           </p>
+
           <h3 className="text-lg font-semibold mt-4">Members:</h3>
           <ul className="list-disc pl-5">
-            {board.members.map((member) => (
-              <li key={member._id} className="text-gray-600">
-                {member.username} ({member.email})
-              </li>
-            ))}
-            <button onClick={() => navigate('/boardlist')}>Back</button>
+            {board.members?.length > 0 ? (
+              board.members.map((member) => (
+                <li key={member._id} className="text-gray-600">
+                  {member.username} ({member.email})
+                </li>
+              ))
+            ) : (
+              <p className="text-gray-500">No members in this board.</p>
+            )}
           </ul>
+
+          {/* Back Button */}
+          <button
+            onClick={() => navigate("/boardlist")}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Back to Boards
+          </button>
         </div>
       ) : (
         <p className="text-gray-500">Board not found.</p>

@@ -58,30 +58,7 @@ const Dashboard = () => {
     }
   };
 
-  // Create Board
-  // const handleCreateBoard = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     if (!token) return;
-
-  //     await axios.post(
-  //       "http://localhost:3000/api/boards/createBoards",
-  //       { title: boardName, description },
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     );
-
-  //     setBoardName("");
-  //     setDescription("");
-  //     setShowCreateForm(false);
-  //     setSelectedBoard(null);
-  //     setViewAllBoards(false);
-  //     fetchBoards();
-  //   } catch (error) {
-  //     console.error("Error creating board:", error);
-  //   }
-  // };
-
+ 
   const handleCreateBoard = async (e) => {
     e.preventDefault();
     try {

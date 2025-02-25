@@ -122,7 +122,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row h-screen">
+    <div className="flex flex-col flex-wrap  sm:flex-row h-screen w-screen overflow-hidden">
       {/* Sidebar */}
       <button
         className="sm:hidden p-2 bg-gray-800 text-white"
@@ -135,7 +135,7 @@ const Dashboard = () => {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } sm:translate-x-0`}
       >
-        <div className="sidebar p-4 w-full md:w-64 text-white h-auto md:h-screen">
+        <div className="sidebar  p-4 w-full md:w-64 text-white h-auto md:h-full">
           <h2 className="text-xl font-semibold mb-4">Project Manager</h2>
           <ul className="space-y-3">
             <li
@@ -176,17 +176,15 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main Section */}
-     {/* Main Section */}
 {/* Main Section */}
-<div className=" bg-gray-100 relative flex flex-wrap flex-col h-screen">
-  {/* Navbar */}
-  <div className="pb-0">
-    <Navbar />
-  </div>
+<div className="flex-1 bg-gray-100 relative flex flex-col overflow-hidden">
+    {/* Navbar */}
+    <div className="pb-0">
+      <Navbar />
+    </div>
 
   {/* Content Area (Without Scroll) */}
-  <div className="flex-1 p-6">
+  <div className="p-6 flex-1 overflow-auto">
     {/* Show All Boards */}
     {viewAllBoards && !selectedBoard && !showCreateForm && (
       <>
@@ -211,31 +209,32 @@ const Dashboard = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {boards.map((board) => (
-            <div 
-              key={board._id}
-              className="cursor-pointer p-4 bg-white shadow-md rounded hover:bg-gray-200 relative"
-            >
-              <div onClick={() => setSelectedBoard(board)}>
-                <h3 className="font-semibold">{board.title}</h3>
-                <p className="text-sm text-gray-600">{board.description}</p>
-                <p className="text-sm text-gray-600">
-                  Created At: {new Date(board.createdAt).toLocaleString()}
-                </p>
-              </div>
+        <div className="flex flex-wrap gap-4 justify-start">
+  {boards.map((board) => (
+    <div 
+      key={board._id}
+      className="cursor-pointer relative p-4 bg-white shadow-md rounded hover:bg-gray-200 w-64"
+    >
+      <div onClick={() => setSelectedBoard(board)}>
+        <h3 className="font-semibold">{board.title}</h3>
+        <p className="text-sm text-gray-600">{board.description}</p>
+        <p className="text-sm text-gray-600">
+          Created At: {new Date(board.createdAt).toLocaleString()}
+        </p>
+      </div>
 
-              {/* Delete Button (Only for Admins) */}
-              <div className="absolute top-3 right-0">
-                <DeleteBoard
-                  board={board}
-                  fetchBoards={fetchBoards}
-                  userRole={userRole}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Delete Button (Only for Admins) */}
+      <div className="absolute top-3 right-4">
+        <DeleteBoard
+          board={board}
+          fetchBoards={fetchBoards}
+          userRole={userRole}
+        />
+      </div>
+    </div>
+  ))}
+</div>
+
       </>
     )}
 
@@ -271,7 +270,8 @@ const Dashboard = () => {
 
     {/* Default Welcome Message Based on Role */}
     {!viewAllBoards && !selectedBoard && !showCreateForm && (
-      <div className="flex items-center justify-center h-full text-center">
+      <div className="flex w-full min-w-full items-center justify-center h-full text-center">
+
         {userRole === "admin" ? (
           <h2 className="text-xl text-gray-600">
             Welcome, Admin! You have full access to manage boards.
@@ -286,7 +286,7 @@ const Dashboard = () => {
 
     {/* Board Details */}
     {selectedBoard && (
-      <div>
+      <div className="flex flex-wrap">
         <ListComponent boardId={selectedBoard._id} />
       </div>
     )}

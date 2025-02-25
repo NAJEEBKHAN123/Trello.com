@@ -8,7 +8,7 @@ const DeleteBoard = ({ board, userRole, fetchBoards }) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        console.log("No token provided, please login again.");
+        console.log("No token provided, please log in again.");
         return;
       }
 
@@ -36,9 +36,9 @@ const DeleteBoard = ({ board, userRole, fetchBoards }) => {
       {userRole === "admin" && (
         <button
           onClick={() => handleDeleteBoard(board._id)}
-          className=" px-3 py-1 rounded "
+          className="px-3 py-1 transition"
         >
-          ❌ Delete
+          ❌ 
         </button>
       )}
     </>

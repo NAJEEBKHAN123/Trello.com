@@ -85,33 +85,41 @@ const TaskComponent = ({ listId, boardId }) => {
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
   
-    const { source, destination, draggableId } = result;
+    console.log("Drag Result:", result);
   
-    // If task remains in the same list
+    const { source, destination, draggableId } = result;
+    
+    console.log(`Dragging task ${draggableId} from ${source.droppableId} to ${destination.droppableId}`);
+  
     if (source.droppableId === destination.droppableId) {
+      console.log("Reordering task within the same list");
       const reorderedTasks = [...tasks];
       const [movedTask] = reorderedTasks.splice(source.index, 1);
       reorderedTasks.splice(destination.index, 0, movedTask);
       setTasks(reorderedTasks);
     } else {
-      // Task moved to a different list
+      console.log("Moving task to a different list");
+      
       try {
         const token = localStorage.getItem("token");
   
-        // Update the task in the backend
         await axios.put(
           `http://localhost:3000/api/moves/moveTask`,
           { taskId: draggableId, newListId: destination.droppableId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
   
-        // Refresh tasks from API after move
-        fetchTasks();  // 🔥 Ensure UI reflects changes
+        setTasks((prevTasks) =>
+          prevTasks.filter((task) => task._id !== draggableId)
+        );
+  
+        fetchTasks();  
       } catch (error) {
-        console.error("Error updating task position:", error.response?.data || error);
+        console.error("Error moving task:", error.response?.data || error);
       }
     }
   };
+  
   
   
 

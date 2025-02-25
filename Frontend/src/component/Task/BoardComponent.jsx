@@ -1,4 +1,4 @@
-// BoardComponent.js (Parent)
+// BoardComponent.js
 import React, { useState, useEffect } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import axios from "axios";
@@ -6,7 +6,7 @@ import TaskComponent from "./TaskComponent";
 
 const BoardComponent = ({ boardId }) => {
   const [lists, setLists] = useState([]);
-  const [tasks, setTasks] = useState({}); // { [listId]: arrayOfTasks }
+  const [tasks, setTasks] = useState({});
 
   useEffect(() => {
     fetchBoardData();
@@ -16,10 +16,10 @@ const BoardComponent = ({ boardId }) => {
     try {
       const token = localStorage.getItem("token");
       const [listsRes, tasksRes] = await Promise.all([
-        axios.get(`http://localhost:3000/api/lists/getListsByBoard/${boardId}`, {
+        axios.get(`http://localhost:3000/api/lists/boards/${boardId}/lists`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get(`http://localhost:3000/api/tasks/getTasksByBoard/${boardId}`, {
+        axios.get(`http://localhost:3000/api/lists/boards/${boardId}/lists`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -40,44 +40,42 @@ const BoardComponent = ({ boardId }) => {
   const handleDragEnd = async (result) => {
     const { source, destination, draggableId } = result;
     
-    if (!destination) return;
-    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+    if (!destination || source.index === destination.index) return;
 
-    // Optimistic update
-    const sourceTasks = [...tasks[source.droppableId]];
-    const [movedTask] = sourceTasks.splice(source.index, 1);
+    const sourceListId = source.droppableId;
+    const destListId = destination.droppableId;
+
+    // Clone tasks
     const newTasks = { ...tasks };
+    const sourceTasks = [...newTasks[sourceListId]];
+    const [movedTask] = sourceTasks.splice(source.index, 1);
 
-    // Same list movement
-    if (source.droppableId === destination.droppableId) {
+    if (sourceListId === destListId) {
       sourceTasks.splice(destination.index, 0, movedTask);
-      newTasks[source.droppableId] = sourceTasks;
-      setTasks(newTasks);
-    } 
-    // Different list movement
-    else {
-      const destTasks = [...(tasks[destination.droppableId] || [])];
-      destTasks.splice(destination.index, 0, { ...movedTask, list: destination.droppableId });
-      
-      newTasks[source.droppableId] = sourceTasks;
-      newTasks[destination.droppableId] = destTasks;
-      setTasks(newTasks);
+      newTasks[sourceListId] = sourceTasks;
+    } else {
+      const destTasks = [...(newTasks[destListId] || [])];
+      destTasks.splice(destination.index, 0, { ...movedTask, list: destListId });
+      newTasks[sourceListId] = sourceTasks;
+      newTasks[destListId] = destTasks;
     }
+
+    setTasks(newTasks);
 
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:3000/api/moves/moveTask`,
+        "http://localhost:3000/api/moves/moveTask",
         {
           taskId: draggableId,
-          newListId: destination.droppableId,
+          newListId: destListId,
           newIndex: destination.index,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
     } catch (error) {
-      console.error("Move failed, reverting UI:", error);
-      fetchBoardData(); // Revert to server state
+      console.error("Move failed:", error);
+      fetchBoardData(); // Revert on error
     }
   };
 
@@ -90,7 +88,7 @@ const BoardComponent = ({ boardId }) => {
             list={list}
             tasks={tasks[list._id] || []}
             boardId={boardId}
-            onTaskUpdate={fetchBoardData}
+            onUpdate={fetchBoardData}
           />
         ))}
       </DragDropContext>

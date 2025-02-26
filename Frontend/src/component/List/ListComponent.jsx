@@ -145,7 +145,7 @@ const ListComponent = ({ boardId }) => {
             )}
           
         </h2>
-        <div className="flex justify-center flex-col sm:flex-2/3  items-center sm:flex-row gap-4">
+        <div className="flex justify-center items-center flex-col sm:flex-2/3   sm:flex-row gap-4">
           {lists.map((list) => (
             <Droppable key={list._id} droppableId={list._id}>
               {(provided) => (

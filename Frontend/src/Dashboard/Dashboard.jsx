@@ -4,6 +4,7 @@ import DeleteBoard from "../component/Board/DeleteBoard";
 import ListComponent from "../component/List/ListComponent";
 import Navbar from "../Common/Navbar";
 import { useNavigate } from "react-router-dom";
+import { View } from "lucide-react";
 
 const Dashboard = () => {
   const [boards, setBoards] = useState([]);
@@ -14,6 +15,8 @@ const Dashboard = () => {
   const [viewAllBoards, setViewAllBoards] = useState(false);
   const [userRole, setUserRole] = useState(""); // 🔹 Store user role
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [members, setMembers] = useState([]);
+  const [viewAllMembers, setViewAllMembers] = useState(false);
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -44,22 +47,36 @@ const Dashboard = () => {
   };
 
   //  Fetch boards
-  const fetchBoards = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
+ // ✅ Add this to store all members
 
-      const response = await axios.get(
-        "http://localhost:3000/api/boards/getAllBoards",
-        {
-          headers: { Authorization: `Bearer ${token}` }, // ✅ Fixed backticks
-        }
-      );
-      setBoards(response.data.data);
-    } catch (error) {
-      console.error("Error fetching boards:", error);
-    }
-  };
+const fetchBoards = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const response = await axios.get(
+      "http://localhost:3000/api/boards/getAllBoards",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const boardsData = response.data.data;
+    setBoards(boardsData);
+
+    // ✅ Extract unique members
+    const allMembers = [
+      ...new Set(boardsData.flatMap((board) => board.members)),
+    ];
+    setMembers(allMembers); // ✅ Store in state
+
+    console.log("Boards:", boardsData);
+    console.log("Unique Members:", allMembers);
+  } catch (error) {
+    console.error("Error fetching boards:", error);
+  }
+};
+
 
   const handleCreateBoard = async (e) => {
     e.preventDefault();
@@ -145,15 +162,22 @@ const Dashboard = () => {
                 setShowCreateForm(false);
                 setViewAllBoards(true);
                 setIsSidebarOpen(false);
+                setViewAllMembers(false)
               }}
             >
               📌 Boards
             </li>
             <li
               className="cursor-pointer p-2 bg-gray-700 hover:bg-gray-600 rounded"
-              onClick={() => setIsSidebarOpen(false)}
+              onClick={() => {
+                setIsSidebarOpen(false)
+                setViewAllMembers(true)
+                setViewAllBoards(false)
+            
+              }}
             >
               👥 Members
+             
             </li>
             <li className="cursor-pointer p-2 bg-gray-700 hover:bg-gray-600 rounded">
               📁 Your Boards
@@ -165,6 +189,7 @@ const Dashboard = () => {
                     onClick={() => {
                       setSelectedBoard(board);
                       setIsSidebarOpen(false);
+                      setViewAllMembers(false)
                     }}
                   >
                     {board.title}
@@ -184,7 +209,7 @@ const Dashboard = () => {
     </div>
 
   {/* Content Area (Without Scroll) */}
-  <div className="p-6 flex-1 overflow-auto">
+  <div className="p-6 flex-1 justify-center items-center overflow-auto">
     {/* Show All Boards */}
     {viewAllBoards && !selectedBoard && !showCreateForm && (
       <>
@@ -197,7 +222,7 @@ const Dashboard = () => {
                 setViewAllBoards(false);
                 setSelectedBoard(null);
               }}
-              className="p-3 border rounded bg-blue-500 text-white text-center hover:bg-blue-400"
+              className="p-3 border rounded bg-blue-500 text-white text-center hover:bg-blue-400 mt-[-44px]"
             >
               + Create Board
             </button>
@@ -209,11 +234,11 @@ const Dashboard = () => {
           )}
         </div>
 
-        <div className="flex flex-wrap gap-4 justify-start">
+        <div className="flex flex-wrap gap-4 justify-center items-center overflow-auto max-h-[80vh]">
   {boards.map((board) => (
     <div 
       key={board._id}
-      className="cursor-pointer relative p-4 bg-white shadow-md rounded hover:bg-gray-200 w-64"
+      className="cursor-pointer relative p-4 bg-white shadow-md rounded hover:bg-gray-200 w-72"
     >
       <div onClick={() => setSelectedBoard(board)}>
         <h3 className="font-semibold">{board.title}</h3>
@@ -234,6 +259,7 @@ const Dashboard = () => {
     </div>
   ))}
 </div>
+
 
       </>
     )}
@@ -268,8 +294,41 @@ const Dashboard = () => {
       </div>
     )}
 
+{viewAllMembers &&  (
+  <div className="p-6">
+    <h2 className="text-2xl font-semibold mb-4">All Members</h2>
+    <ul className="flex flex-wrap gap-4">
+      {members.length > 0 ? (
+        members.map((member, index) => (
+          <li
+            key={index}
+            className="p-4 bg-white shadow-md rounded flex items-center space-x-2"
+          >
+            {typeof member === "object" ? (
+              <>
+                <img
+                  src={member.avatar || "default-avatar.png"}
+                  alt={member.name}
+                  className="w-10 h-10 rounded-full"
+                />
+                <span className="text-sm font-medium">{member.members}</span>
+              </>
+            ) : (
+              <span className="text-sm font-medium">{member}</span>
+            )}
+          </li>
+        ))
+      ) : (
+        <p className="text-gray-400">No members available</p>
+      )}
+    </ul>
+  </div>
+)}
+
+
+
     {/* Default Welcome Message Based on Role */}
-    {!viewAllBoards && !selectedBoard && !showCreateForm && (
+    {!viewAllBoards && !selectedBoard && !showCreateForm && !viewAllMembers && (
       <div className="flex w-full min-w-full items-center justify-center h-full text-center">
 
         {userRole === "admin" ? (
